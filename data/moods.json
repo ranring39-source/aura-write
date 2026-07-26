@@ -1,0 +1,40 @@
+[
+  {
+    "emoji": "😊",
+    "label": "開心"
+  },
+  {
+    "emoji": "😌",
+    "label": "平靜"
+  },
+  {
+    "emoji": "😴",
+    "label": "疲倦"
+  },
+  {
+    "emoji": "🥺",
+    "label": "憂鬱"
+  },
+  {
+    "emoji": "😢",
+    "label": "悲傷"
+  },
+  {
+    "emoji": "🥱",
+    "label": "疲勞"
+  },
+  {
+    "emoji": "😡",
+    "label": "憤怒"
+  },
+  {
+    "emoji": "🤩",
+    "label": "興奮"
+  },
+  {
+    "emoji": "🥹",
+    "label": "感動",
+    "value": "感動",
+    "class": "mood-custom-tag"
+  }
+]

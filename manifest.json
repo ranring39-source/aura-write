@@ -1,0 +1,22 @@
+{
+  "name": "AuraWrite",
+  "short_name": "AuraWrite",
+  "description": "融合心情記錄、標籤分類、圖文與音檔的極致美學寫作空間",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d0d12",
+  "theme_color": "#1a1a24",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "title": "死亡會是理由",
+    "date": "2026-07-24",
+    "content": "要死了不想忍耐 想做真正的自己。\n這樣想之後，自我衝突的罪惡，突然全部消失。\n\n她並沒有對的部分，但我時常要為自己堅持對的部分，感到難受。\n我到底有病啊！！\n就是這樣矛盾跟衝突的自己。",
+    "category": "代間",
+    "moods": [
+      "平靜"
+    ],
+    "location": "臺南市甲東里裕農街80巷2弄",
+    "tags": [
+      "隨手札",
+      "死亡"
+    ],
+    "blocks": [
+      {
+        "id": "block_init",
+        "type": "text",
+        "value": "要死了不想忍耐 想做真正的自己。\n這樣想之後，自我衝突的罪惡，突然全部消失。\n\n她並沒有對的部分，但我時常要為自己堅持對的部分，感到難受。\n我到底有病啊！！\n就是這樣矛盾跟衝突的自己。",
+        "imageBlob": null,
+        "audioBlob": null,
+        "videoBlob": null
+      }
+    ],
+    "imageBlob": null,
+    "imagePath": null,
+    "audioBlob": null,
+    "audioPath": null,
+    "audioName": null,
+    "id": 344664,
+    "updatedAt": "Fri, 24 Jul 2026 15:37:48 GMT",
+    "createdAt": "Fri, 24 Jul 2026 14:17:19 GMT"
+  },
+  {
+    "title": "關於求婚",
+    "date": "2026-07-24",
+    "content": "其實根本不憧憬婚姻，對家庭也沒期待。想自己為何是這樣的狀態。\n牽著阿花的時候想，如果在成長過程，沒有學習的對象，有些事情是沒有辦法靠想像學會的。希望家庭裡面的自己，是可以幫助孩子們成長的。希望可以讓他們學會愛跟愛人的。",
+    "category": "影音觸動",
+    "moods": [
+      "感動"
+    ],
+    "location": "🏠",
+    "tags": [
+      "家庭",
+      "婚姻",
+      "愛"
+    ],
+    "blocks": [
+      {
+        "id": "block_init",
+        "type": "text",
+        "value": "其實根本不憧憬婚姻，對家庭也沒期待。想自己為何是這樣的狀態。\n牽著阿花的時候想，如果在成長過程，沒有學習的對象，有些事情是沒有辦法靠想像學會的。希望家庭裡面的自己，是可以幫助孩子們成長的。希望可以讓他們學會愛跟愛人的。",
+        "imageBlob": null,
+        "audioBlob": null,
+        "videoBlob": null
+      },
+      {
+        "id": "block_1784904943901_qwmsu",
+        "type": "link",
+        "value": "",
+        "caption": "",
+        "imagePath": null,
+        "imageBlob": null,
+        "audioPath": null,
+        "audioBlob": null,
+        "audioName": null,
+        "videoPath": null,
+        "videoBlob": null,
+        "url": "https://youtu.be/o8O2uXPkwyA",
+        "title": "看這影片莫名想哭"
+      }
+    ],
+    "imageBlob": null,
+    "imagePath": null,
+    "audioBlob": null,
+    "audioPath": null,
+    "audioName": null,
+    "id": 561193,
+    "updatedAt": "Fri, 24 Jul 2026 15:59:18 GMT",
+    "createdAt": "Fri, 24 Jul 2026 14:56:33 GMT"
+  }
+]
