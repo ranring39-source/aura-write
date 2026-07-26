@@ -1543,6 +1543,13 @@ body {
   to { opacity: 1; transform: translateX(0); }
 }
 
+/* Hide category filter row on desktop because it duplicates the sidebar */
+@media (min-width: 901px) {
+  .category-filter-row {
+    display: none !important;
+  }
+}
+
 /* Responsive Styles */
 @media (max-width: 900px) {
   .app-main {
