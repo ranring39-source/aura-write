@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aurawrite-cache-v21';
+const CACHE_NAME = 'aurawrite-cache-v23';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

@@ -887,6 +887,17 @@ function renderFeed() {
     const catName = entry.category || '生活隨筆';
     const catSymbol = entry.categoryEmoji || getCategorySymbol(catName);
     
+    let locationHtml = '';
+    if (entry.location) {
+      let locText = entry.location.trim();
+      while (locText.startsWith('📍')) {
+        locText = locText.replace(/^📍\s*/, '');
+      }
+      if (locText) {
+        locationHtml = `<span class="diary-meta-location" style="display: inline-flex; align-items: center; gap: 0.25rem; color: var(--accent-primary); background: var(--accent-glow); padding: 0.15rem 0.5rem; border-radius: 6px; margin-left: 0.5rem; font-size: 0.72rem; white-space: normal; word-break: break-word; line-height: 1.2;">📍 ${escapeHTML(locText)}</span>`;
+      }
+    }
+    
     card.innerHTML = `
       <div class="diary-card-header">
         <div class="diary-meta-left">
@@ -900,7 +911,7 @@ function renderFeed() {
               <span class="diary-meta-time">${weekday} · ${entry.date}</span>
               <span class="diary-meta-details">
                 <span class="diary-meta-category">${catSymbol} ${escapeHTML(catName)}</span>
-                ${entry.location ? `<span class="diary-meta-location" style="display: inline-flex; align-items: center; gap: 0.25rem; color: var(--accent-primary); background: var(--accent-glow); padding: 0.15rem 0.5rem; border-radius: 6px; margin-left: 0.5rem; font-size: 0.72rem; white-space: normal; word-break: break-word; line-height: 1.2;">📍 ${escapeHTML(entry.location)}</span>` : ''}
+                ${locationHtml}
               </span>
             </div>
           </div>
@@ -932,6 +943,34 @@ function renderFeed() {
     `;
     
     feedContainer.appendChild(card);
+    
+    // 5-line height clamping & expand toggle
+    const cardBody = card.querySelector('.diary-card-body');
+    setTimeout(() => {
+      // 170px matches roughly 5-6 lines with margins
+      if (cardBody.scrollHeight > 175) {
+        cardBody.classList.add('collapsed');
+        
+        const expandBtn = document.createElement('button');
+        expandBtn.type = 'button';
+        expandBtn.className = 'diary-card-expand-btn';
+        expandBtn.innerHTML = '展開全文 <i data-lucide="chevron-down"></i>';
+        
+        cardBody.parentNode.insertBefore(expandBtn, cardBody.nextSibling);
+        lucide.createIcons();
+        
+        expandBtn.addEventListener('click', () => {
+          const isCollapsed = cardBody.classList.toggle('collapsed');
+          if (isCollapsed) {
+            expandBtn.innerHTML = '展開全文 <i data-lucide="chevron-down"></i>';
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } else {
+            expandBtn.innerHTML = '收起全文 <i data-lucide="chevron-up"></i>';
+          }
+          lucide.createIcons();
+        });
+      }
+    }, 50);
     
     card.querySelector('.edit-entry-btn').addEventListener('click', () => openEditor(entry.id));
     card.querySelector('.delete-entry-btn').addEventListener('click', () => confirmDelete(entry.id));
@@ -1718,7 +1757,7 @@ function renderEditorBlocks() {
     
     if (block.type === 'text') {
       contentBox.innerHTML = `
-        <textarea class="block-text-input" placeholder="寫點什麼段落文字吧..." oninput="autoResizeTextarea(this); updateBlockValue('${block.id}', this.value);">${escapeHTML(block.value || '')}</textarea>
+        <textarea class="block-text-input" placeholder="寫點什麼段落文字吧..." oninput="autoResizeTextarea(this); updateBlockValue('${block.id}', this.value); keepCursorInView(this);">${escapeHTML(block.value || '')}</textarea>
       `;
     } else if (block.type === 'image') {
       const imgUrl = block.imageBlob ? URL.createObjectURL(block.imageBlob) : block.imagePath;
@@ -1832,8 +1871,36 @@ function setupViewportPinner() {
 // Textarea auto-resize helper
 window.autoResizeTextarea = function(el) {
   if (!el) return;
-  el.style.height = 'auto';
-  el.style.height = `${el.scrollHeight}px`;
+  // To prevent iOS Safari cursor/layout jumping, only trigger 'auto' height calculations 
+  // if the scrollHeight decreases (meaning the text length shrunk).
+  if (el.scrollHeight > el.clientHeight) {
+    el.style.height = `${el.scrollHeight}px`;
+  } else {
+    // Content shrunk, recalculate height safely
+    const oldScrollTop = window.scrollY;
+    const container = el.closest('.editor-container');
+    const containerScrollTop = container ? container.scrollTop : 0;
+    
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+    
+    // Restore scroll positions to prevent jumping
+    if (window.scrollY !== oldScrollTop) {
+      window.scrollTo(window.scrollX, oldScrollTop);
+    }
+    if (container && container.scrollTop !== containerScrollTop) {
+      container.scrollTop = containerScrollTop;
+    }
+  }
+};
+
+// Keep typing cursor in viewport above mobile keyboard
+window.keepCursorInView = function(el) {
+  if (!el) return;
+  setTimeout(() => {
+    if (document.activeElement !== el) return;
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, 100);
 };
 
 // Reorder block up/down
@@ -2062,6 +2129,14 @@ window.stopBlockRecording = function(id) {
 // Form Submission / Upload Saving
 async function handleFormSubmit(e) {
   e.preventDefault();
+  
+  // If there's text remaining in the tag input field, auto-add it as a tag
+  const tagVal = DOM.tagTextInput.value.trim().toLowerCase().replace(/^[#＃]/, '');
+  if (tagVal.length > 0 && !state.editorTags.includes(tagVal)) {
+    state.editorTags.push(tagVal);
+    DOM.tagTextInput.value = '';
+    renderEditorTags();
+  }
   
   const title = DOM.entryTitle.value.trim();
   const date = DOM.entryDate.value;
