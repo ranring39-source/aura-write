@@ -99,9 +99,10 @@ export async function getAllEntries() {
  */
 export async function getEntry(id) {
   const { store } = await getStore('readonly');
+  const parsedId = isNaN(id) ? id : Number(id);
   
   return new Promise((resolve, reject) => {
-    const request = store.get(Number(id));
+    const request = store.get(parsedId);
     request.onsuccess = (event) => resolve(event.target.result);
     request.onerror = (event) => reject(event.target.error);
   });
@@ -202,9 +203,10 @@ export async function updateEntry(entry) {
  */
 export async function deleteEntry(id) {
   const { store } = await getStore('readwrite');
+  const parsedId = isNaN(id) ? id : Number(id);
   
   return new Promise((resolve, reject) => {
-    const request = store.delete(Number(id));
+    const request = store.delete(parsedId);
     request.onsuccess = () => resolve();
     request.onerror = (event) => reject(event.target.error);
   });
