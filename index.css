@@ -2156,19 +2156,19 @@ body {
 }
 
 .diary-card-body.collapsed {
-  max-height: 160px; /* Clamp to approx 5 lines of text plus styling */
+  max-height: 145px; /* Clamp to approx 5 lines of text plus styling */
+  /* Modern CSS mask to softly fade out text at the bottom and avoid ugly cut-off lines */
+  -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
 }
 
-/* Fade overlay for collapsed body */
-.diary-card-body.collapsed::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 50px;
-  background: linear-gradient(to bottom, transparent, var(--card-bg));
-  pointer-events: none;
+/* In collapsed state, hide all media, links, and audio elements inside the card body */
+.diary-card-body.collapsed .card-block-image,
+.diary-card-body.collapsed .card-block-video,
+.diary-card-body.collapsed .card-block-audio,
+.diary-card-body.collapsed .card-block-youtube,
+.diary-card-body.collapsed .card-block-link {
+  display: none !important;
 }
 
 .diary-card-expand-btn {
