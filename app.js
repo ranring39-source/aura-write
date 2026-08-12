@@ -21,6 +21,100 @@ const supabase = window.supabase ? window.supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzaHV2dnB4eHpocWhoZ2FwcmVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5ODI4MDUsImV4cCI6MjEwMDU1ODgwNX0.xbAl5ZGvmCiMRd58bPiw1k_CfeCcC0FcVRHUlr8loVA'
 ) : null;
 
+// Custom Prompt Dialog Box for standalone PWA support (since iOS PWA blocks native window.prompt)
+window.showCustomPrompt = function(title, placeholder, defaultValue = '') {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.style.zIndex = '300';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.padding = '1rem';
+    
+    const content = document.createElement('div');
+    content.className = 'modal-content glass-panel animate-fade-in';
+    content.style.maxWidth = '360px';
+    content.style.width = '100%';
+    content.style.padding = '1.5rem';
+    content.style.borderRadius = '16px';
+    content.style.border = '1px solid var(--border-color)';
+    content.style.background = 'var(--glass-bg)';
+    content.style.backdropFilter = 'blur(20px)';
+    
+    content.innerHTML = `
+      <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.15rem; font-family: var(--font-title); color: var(--text-primary); text-align: center;">${title}</h3>
+      <input type="text" id="custom-prompt-input" value="${defaultValue}" placeholder="${placeholder}" style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-primary); padding: 0 0.75rem; font-size: 0.95rem; outline: none; margin-bottom: 1.25rem; text-align: center;">
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+        <button id="custom-prompt-cancel" class="card-action-btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer;">取消</button>
+        <button id="custom-prompt-ok" class="primary-btn glow-btn" style="padding: 0.5rem 1.25rem; font-size: 0.85rem; border-radius: 8px; border: none; cursor: pointer;">確定</button>
+      </div>
+    `;
+    
+    overlay.appendChild(content);
+    document.body.appendChild(overlay);
+    
+    const input = content.querySelector('#custom-prompt-input');
+    input.focus();
+    input.select();
+    
+    const close = (value) => {
+      document.body.removeChild(overlay);
+      resolve(value);
+    };
+    
+    content.querySelector('#custom-prompt-cancel').onclick = () => close(null);
+    content.querySelector('#custom-prompt-ok').onclick = () => close(input.value);
+    input.onkeydown = (e) => {
+      if (e.key === 'Enter') close(input.value);
+      if (e.key === 'Escape') close(null);
+    };
+  });
+};
+
+// Custom Confirm Dialog Box for standalone PWA support (since iOS PWA blocks native window.confirm)
+window.showCustomConfirm = function(message) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.style.zIndex = '300';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.padding = '1rem';
+    
+    const content = document.createElement('div');
+    content.className = 'modal-content glass-panel animate-fade-in';
+    content.style.maxWidth = '360px';
+    content.style.width = '100%';
+    content.style.padding = '1.5rem';
+    content.style.borderRadius = '16px';
+    content.style.border = '1px solid var(--border-color)';
+    content.style.background = 'var(--glass-bg)';
+    content.style.backdropFilter = 'blur(20px)';
+    
+    content.innerHTML = `
+      <h3 style="margin-top: 0; margin-bottom: 1.25rem; font-size: 1rem; font-weight: 500; color: var(--text-primary); text-align: center; line-height: 1.5; white-space: pre-wrap;">${message}</h3>
+      <div style="display: flex; gap: 0.5rem; justify-content: center; width: 100%;">
+        <button id="custom-confirm-cancel" class="card-action-btn" style="flex: 1; height: 38px; font-size: 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); background: none; color: var(--text-secondary); cursor: pointer;">取消</button>
+        <button id="custom-confirm-ok" class="primary-btn glow-btn" style="flex: 1; height: 38px; font-size: 0.85rem; border-radius: 8px; border: none; cursor: pointer; background: #ef4444 !important; color: white !important;">確定</button>
+      </div>
+    `;
+    
+    overlay.appendChild(content);
+    document.body.appendChild(overlay);
+    
+    const close = (value) => {
+      document.body.removeChild(overlay);
+      resolve(value);
+    };
+    
+    content.querySelector('#custom-confirm-cancel').onclick = () => close(false);
+    content.querySelector('#custom-confirm-ok').onclick = () => close(true);
+    content.querySelector('#custom-confirm-cancel').focus();
+  });
+};
+
 // Global App State
 let state = {
   entries: [],
@@ -240,9 +334,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
     
-    // Logout Button click
     DOM.logoutBtn.addEventListener('click', async () => {
-      if (confirm('確定要登出您的雲端帳號嗎？')) {
+      const confirmed = await showCustomConfirm('確定要登出您的雲端帳號嗎？');
+      if (confirmed) {
         const { error } = await supabase.auth.signOut();
         if (error) {
           showToast('登出失敗', 'error');
@@ -1234,7 +1328,8 @@ function closeEditor() {
 
 // Delete Confirmation & Action
 async function confirmDelete(id) {
-  if (confirm('確定要刪除這筆寫作紀錄嗎？此動作無法復原。')) {
+  const confirmed = await showCustomConfirm('確定要刪除這筆寫作紀錄嗎？\n此動作無法復原。');
+  if (confirmed) {
     try {
       await deleteEntry(id);
       trackDeletion(id);
@@ -1516,7 +1611,8 @@ window.deleteCustomMood = async function(index) {
     return;
   }
   
-  if (confirm(`確定要刪除「${state.moodsList[index].emoji} ${state.moodsList[index].label}」嗎？已儲存的舊日記標籤不受影響。`)) {
+  const confirmed = await showCustomConfirm(`確定要刪除「${state.moodsList[index].emoji} ${state.moodsList[index].label}」嗎？\n已儲存的舊日記標籤不受影響。`);
+  if (confirmed) {
     state.moodsList.splice(index, 1);
     await saveMoodsList();
   }
@@ -1612,7 +1708,7 @@ window.editCustomCategory = async function(index) {
   const cat = state.categoriesList[index];
   if (!cat) return;
   
-  const newName = prompt(`請輸入分類「${cat.name}」的新名稱：`, cat.name);
+  const newName = await showCustomPrompt(`修改分類名稱`, `請輸入「${cat.name}」的新名稱：`, cat.name);
   if (newName === null) return;
   const trimmed = newName.trim();
   if (!trimmed) {
@@ -1625,7 +1721,7 @@ window.editCustomCategory = async function(index) {
     return;
   }
   
-  const newEmoji = prompt(`請輸入分類「${trimmed}」的新圖示 (Emoji)：`, cat.emoji);
+  const newEmoji = await showCustomPrompt(`修改分類圖示 (Emoji)`, `請輸入「${trimmed}」的新 Emoji 圖示：`, cat.emoji);
   if (newEmoji === null) return;
   const trimmedEmoji = newEmoji.trim() || '📁';
   
@@ -1664,7 +1760,8 @@ window.deleteCustomCategory = async function(index) {
   }
   
   const cat = state.categoriesList[index];
-  if (confirm(`確定要刪除「${cat.emoji} ${cat.name}」嗎？相關日記的分類標記會保留。`)) {
+  const confirmed = await showCustomConfirm(`確定要刪除「${cat.emoji} ${cat.name}」嗎？\n相關日記的分類標記會保留。`);
+  if (confirmed) {
     state.categoriesList.splice(index, 1);
     await saveCategoriesList();
     renderCategoriesModalList();
@@ -1861,9 +1958,22 @@ function setupViewportPinner() {
     inputEl.dataset.pinnerBound = "true";
     
     inputEl.addEventListener('focus', () => {
+      const container = inputEl.closest('.editor-container');
+      if (!container) return;
+      
       setTimeout(() => {
-        inputEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      }, 300);
+        const containerRect = container.getBoundingClientRect();
+        const inputRect = inputEl.getBoundingClientRect();
+        
+        // Calculate target scroll position to center the input element
+        const relativeTop = inputRect.top - containerRect.top;
+        const targetScroll = container.scrollTop + relativeTop - (containerRect.height / 2) + (inputRect.height / 2);
+        
+        container.scrollTo({
+          top: Math.max(0, targetScroll),
+          behavior: 'smooth'
+        });
+      }, 300); // Wait for mobile keyboard to fully slide in
     });
   });
 }
@@ -1897,10 +2007,28 @@ window.autoResizeTextarea = function(el) {
 // Keep typing cursor in viewport above mobile keyboard
 window.keepCursorInView = function(el) {
   if (!el) return;
+  const container = el.closest('.editor-container');
+  if (!container) return;
+  
   setTimeout(() => {
     if (document.activeElement !== el) return;
-    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, 100);
+    
+    const containerRect = container.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    
+    // Check where the typing cursor is roughly located in the element
+    const cursorPercent = el.value.length > 0 ? (el.selectionStart / el.value.length) : 1;
+    const cursorY = elRect.top + (elRect.height * cursorPercent);
+    
+    // If the cursor goes below the visible bottom of the container (with a 80px buffer for mobile keyboards)
+    if (cursorY > containerRect.bottom - 80) {
+      const scrollDiff = cursorY - containerRect.bottom + 120;
+      container.scrollBy({ top: scrollDiff, behavior: 'smooth' });
+    } else if (elRect.top < containerRect.top + 40) {
+      const scrollDiff = containerRect.top - elRect.top + 60;
+      container.scrollBy({ top: -scrollDiff, behavior: 'smooth' });
+    }
+  }, 50);
 };
 
 // Reorder block up/down
@@ -2154,7 +2282,9 @@ async function handleFormSubmit(e) {
     category = DOM.entryCategoryCustom.value.trim();
     categoryEmoji = DOM.entryCategoryEmoji.value.trim() || '📂';
   } else {
-    categoryEmoji = getCategorySymbol(category);
+    // Look up emoji in the customized categories list first to avoid falling back to folder folder
+    const foundCat = state.categoriesList.find(c => c.name === category);
+    categoryEmoji = foundCat ? foundCat.emoji : getCategorySymbol(category);
   }
   if (!category) category = '生活隨筆';
   
