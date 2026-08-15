@@ -656,8 +656,7 @@ function renderSidebarCategories(categoryStats, totalCount) {
     button.className = `category-item ${activeCategory === cat ? 'active' : ''}`;
     button.setAttribute('data-category', cat);
     
-    const matchedEntry = state.entries.find(e => e.category === cat);
-    const emoji = matchedEntry?.categoryEmoji || getCategorySymbol(cat);
+    const emoji = getCategoryEmoji(cat);
     
     button.innerHTML = `
       <div class="category-name-wrapper">
@@ -693,8 +692,7 @@ function renderFilterCategoryChips(categoryStats) {
   `;
   
   Object.keys(categoryStats).forEach(cat => {
-    const matchedEntry = state.entries.find(e => e.category === cat);
-    const emoji = matchedEntry?.categoryEmoji || getCategorySymbol(cat);
+    const emoji = getCategoryEmoji(cat);
     
     const chip = document.createElement('button');
     chip.className = `tag-chip ${activeCategory === cat ? 'active' : ''}`;
@@ -800,6 +798,13 @@ function getCategorySymbol(category) {
   if (cat === '心情宣洩') return '🌪️';
   if (cat === '靈感筆記') return '💡';
   return '📂'; // Default folder icon
+}
+
+// Helper to get active user-configured emoji for a category, falling back to default symbol
+function getCategoryEmoji(categoryName) {
+  const cat = (categoryName || '').trim();
+  const configCat = state.categoriesList.find(c => c.name === cat);
+  return configCat ? configCat.emoji : getCategorySymbol(cat);
 }
 
 // Render Writing Timeline Feed
@@ -979,7 +984,7 @@ function renderFeed() {
     }
     
     const catName = entry.category || '生活隨筆';
-    const catSymbol = entry.categoryEmoji || getCategorySymbol(catName);
+    const catSymbol = getCategoryEmoji(catName);
     
     let locationHtml = '';
     if (entry.location) {
