@@ -587,6 +587,27 @@ async function loadData() {
         changed = true;
       }
     });
+    
+    // Auto-healing: If an existing category emoji in state.categoriesList is a default folder icon,
+    // we attempt to heal it using a custom emoji found in entries, or fallback to the new getCategorySymbol.
+    state.categoriesList.forEach(catObj => {
+      if (catObj.emoji === '📂' || catObj.emoji === '📁') {
+        const entryWithRealEmoji = state.entries.find(e => 
+          e.category === catObj.name && 
+          e.categoryEmoji && 
+          e.categoryEmoji !== '📂' && 
+          e.categoryEmoji !== '📁'
+        );
+        const fallbackSymbol = getCategorySymbol(catObj.name);
+        const targetEmoji = entryWithRealEmoji ? entryWithRealEmoji.categoryEmoji : fallbackSymbol;
+        
+        if (targetEmoji !== catObj.emoji) {
+          catObj.emoji = targetEmoji;
+          changed = true;
+        }
+      }
+    });
+    
     if (changed) {
       await saveCategoriesList(false);
     }
@@ -790,13 +811,17 @@ function applyFilters() {
 // Helper to get different symbols/emojis for different folder categories
 function getCategorySymbol(category) {
   const cat = (category || '').trim();
-  if (cat === '生活隨筆') return '📝';
+  if (cat === '生活隨筆' || cat === '生活散記') return '📝';
   if (cat === '代間') return '🌳';
   if (cat === '影音觸動') return '🎬';
   if (cat === '美食記趣') return '🍕';
-  if (cat === '旅行足跡') return '✈️';
+  if (cat === '旅行足跡' || cat === '旅行雜記') return '✈️';
   if (cat === '心情宣洩') return '🌪️';
-  if (cat === '靈感筆記') return '💡';
+  if (cat === '靈感筆記' || cat === '靈感創作') return '💡';
+  if (cat === '工作學習') return '🌲';
+  if (cat === '讀書筆記') return '📚';
+  if (cat === '連結') return '🔗';
+  if (cat === '誕妄') return '🔮';
   return '📂'; // Default folder icon
 }
 
