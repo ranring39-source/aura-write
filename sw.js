@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aurawrite-cache-v28';
+const CACHE_NAME = 'aurawrite-cache-v29';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -41,6 +41,12 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event (Cache-first with network fallback)
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  // Do not intercept non-GET requests or Supabase cloud database/storage API calls
+  if (event.request.method !== 'GET' || url.host.includes('supabase.co')) {
+    return;
+  }
+  
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) {
@@ -50,7 +56,6 @@ self.addEventListener('fetch', (event) => {
       return fetch(event.request).then((response) => {
         // Cache newly requested resources dynamically if they are from safe origins
         if (event.request.method === 'GET' && response.status === 200) {
-          const url = new URL(event.request.url);
           if (url.origin === location.origin || url.host === 'fonts.googleapis.com' || url.host === 'fonts.gstatic.com') {
             return caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, response.clone());
@@ -65,6 +70,7 @@ self.addEventListener('fetch', (event) => {
         if (event.request.mode === 'navigate') {
           return caches.match('./index.html');
         }
+        return new Response('Network error occurred', { status: 408, statusText: 'Network Error' });
       });
     })
   );
