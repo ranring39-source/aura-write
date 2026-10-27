@@ -137,7 +137,8 @@ let state = {
   audioChunks: [],
   recordingTimerInterval: null,
   recordingSeconds: 0,
-  isRecording: false
+  isRecording: false,
+  isOfflineMode: false
 };
 
 // DOM Elements
@@ -209,6 +210,7 @@ const DOM = {
   authSubmitBtn: document.getElementById('auth-submit-btn'),
   authToggleLink: document.getElementById('auth-toggle-link'),
   authErrorMsg: document.getElementById('auth-error-msg'),
+  enterOfflineBtn: document.getElementById('enter-offline-btn'),
   
   // Category Management DOM selectors
   manageCategoriesBtn: document.getElementById('manage-categories-btn'),
@@ -260,10 +262,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       try {
         if (session) {
+          state.isOfflineMode = false;
           const userId = session.user.id;
           DOM.authModal.classList.add('hidden');
           DOM.authModal.style.display = 'none';
           DOM.logoutBtn.classList.remove('hidden');
+          DOM.logoutBtn.innerHTML = '<i data-lucide="log-out"></i> <span>登出</span>';
+          DOM.logoutBtn.title = '登出雲端帳號';
           
           await loadMoods();
           await loadCategories();
@@ -272,6 +277,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           await loadData();
           lucide.createIcons();
         } else {
+          // If the user is currently in offline mode, do not disrupt their workspace
+          if (state.isOfflineMode) return;
+          
           DOM.authModal.classList.remove('hidden');
           DOM.authModal.style.display = 'flex';
           DOM.logoutBtn.classList.add('hidden');
@@ -283,6 +291,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         isProcessingAuthChange = false;
       }
     });
+    
+    // Offline Direct Entry
+    if (DOM.enterOfflineBtn) {
+      DOM.enterOfflineBtn.addEventListener('click', async () => {
+        state.isOfflineMode = true;
+        DOM.authModal.classList.add('hidden');
+        DOM.authModal.style.display = 'none';
+        
+        if (DOM.logoutBtn) {
+          DOM.logoutBtn.classList.remove('hidden');
+          DOM.logoutBtn.innerHTML = '<i data-lucide="cloud-off" style="color: #f59e0b;"></i> <span style="color: #f59e0b;">本機模式 (點擊登入)</span>';
+          DOM.logoutBtn.title = '目前為本機離線模式。點擊可隨時切換至雲端登入';
+        }
+        
+        await loadMoods();
+        await loadCategories();
+        await loadData();
+        lucide.createIcons();
+        showToast('已進入本機模式！現有日記與新增內容將安全保存在此設備。', 'info');
+      });
+    }
     
     // Auth Modal toggle mode
     DOM.authToggleLink.addEventListener('click', (e) => {
@@ -326,7 +355,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       } catch (err) {
         console.error('Auth error:', err);
-        DOM.authErrorMsg.textContent = `錯誤: ${err.message || err}`;
+        let msg = err.message || String(err);
+        if (msg === 'Load failed' || msg === 'Failed to fetch' || (err.name === 'TypeError' && msg.includes('fetch')) || (err.name === 'TypeError' && msg.includes('Load'))) {
+          msg = '連線雲端資料庫失敗（Supabase 免費專案超過 7 天未活動已自動休眠）。\n您可以點擊下方「以本機模式直接進入」照常寫作，或至 Supabase 控制台點擊「Resume project」喚醒雲端！';
+        }
+        DOM.authErrorMsg.textContent = `錯誤: ${msg}`;
         DOM.authErrorMsg.classList.remove('hidden');
       } finally {
         DOM.authSubmitBtn.disabled = false;
@@ -335,6 +368,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     DOM.logoutBtn.addEventListener('click', async () => {
+      if (state.isOfflineMode) {
+        DOM.authModal.classList.remove('hidden');
+        DOM.authModal.style.display = 'flex';
+        return;
+      }
       const confirmed = await showCustomConfirm('確定要登出您的雲端帳號嗎？');
       if (confirmed) {
         const { error } = await supabase.auth.signOut();
@@ -2422,6 +2460,9 @@ async function handleFormSubmit(e) {
     
     closeEditor();
     await loadData();
+    if (!state.isOfflineMode && supabase) {
+      syncDatabase().catch(err => console.warn('Background sync failed:', err));
+    }
   } catch (err) {
     console.error(err);
     showToast('儲存失敗，請重試', 'error');

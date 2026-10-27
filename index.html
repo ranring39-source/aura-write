@@ -89,7 +89,7 @@
   <script src="supabase.js" defer></script>
   
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="index.css?v=29">
+  <link rel="stylesheet" href="index.css?v=31">
 </head>
 <body>
   <div class="app-background">
@@ -445,6 +445,17 @@
             </div>
           </div>
         </form>
+
+        <!-- Offline Direct Access Button -->
+        <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-color); text-align: center;">
+          <button type="button" id="enter-offline-btn" class="card-action-btn" style="width: 100%; height: 42px; border-radius: 8px; border: 1px dashed rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.03); color: var(--text-primary); font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s;">
+            <i data-lucide="hard-drive" style="width: 16px; height: 16px; color: var(--accent-primary);"></i>
+            <span>以本機模式直接進入 (免登入 / 離線寫作)</span>
+          </button>
+          <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4;">
+            💡 若雲端連線失敗或休眠，您仍可隨時進入空間查閱所有日記與自由寫作。
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -453,6 +464,6 @@
   <div class="toast-wrapper" id="toast-wrapper"></div>
 
   <!-- Main JavaScript File -->
-  <script type="module" src="app.js?v=29"></script>
+  <script type="module" src="app.js?v=31"></script>
 </body>
 </html>
